@@ -1,0 +1,16 @@
+POSTGRES_DB=shop
+POSTGRES_USER=shop
+POSTGRES_PASSWORD=shop
+
+TELEGRAM_BOT_TOKEN=123456:replace-me
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_shop_bot
+
+JWT_SECRET=replace-with-a-long-random-production-secret
+BOT_INTERNAL_SECRET=replace-with-a-long-random-internal-secret
+
+ADMIN_TELEGRAM_IDS=1036197450
+ADMIN_CHAT_ID=1036197450
+
+MINI_APP_URL=https://your-public-mini-app-domain.example
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+CORS_ORIGINS=http://localhost:3000,https://your-public-mini-app-domain.example
