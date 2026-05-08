@@ -88,11 +88,26 @@ async def handle_order_notification(request: web.Request) -> web.Response:
 
     payload = await request.json()
     bot: Bot = request.app["bot"]
-    if settings.admin_chat_id is None:
-        logger.warning("ADMIN_CHAT_ID is not configured; order notification skipped")
-        return web.json_response({"ok": True, "skipped": True})
 
-    await bot.send_message(settings.admin_chat_id, format_order(payload))
+    if settings.admin_chat_id is None:
+        if payload.get("admin_order") or payload.get("admin_note"):
+            logger.warning("ADMIN_CHAT_ID is not configured; admin notifications skipped")
+    else:
+        if admin_order := payload.get("admin_order"):
+            await bot.send_message(settings.admin_chat_id, format_order(admin_order))
+        if note := payload.get("admin_note"):
+            await bot.send_message(settings.admin_chat_id, html.escape(str(note)))
+
+    if customer := payload.get("customer"):
+        tid = customer.get("telegram_id")
+        text = customer.get("text")
+        if tid is not None and text:
+            try:
+                plain = html.escape(str(text))
+                await bot.send_message(int(tid), plain, parse_mode=ParseMode.HTML)
+            except Exception:
+                logger.exception("Failed to notify customer via Telegram")
+
     return web.json_response({"ok": True})
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, ShieldCheck, ShoppingBag, UserRound } from "lucide-react";
+import { ClipboardList, Package, ShieldCheck, ShoppingBag, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -31,7 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="ml-auto flex items-center gap-1">
-            {navItems.map((item) => {
+            {navItems
+              .filter((item) => (item.href === "/admin" ? user?.is_admin : true))
+              .map((item) => {
               const Icon = item.icon;
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               return (
@@ -54,6 +56,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            {user ? (
+              <Link
+                href="/orders"
+                className={clsx(
+                  "grid h-10 min-w-10 place-items-center rounded-lg px-3 text-sm transition",
+                  pathname.startsWith("/orders") ? "bg-ink text-white" : "text-ink/70 hover:bg-black/5"
+                )}
+                title="Мои заказы"
+              >
+                <ClipboardList size={18} aria-hidden />
+                <span className="sr-only">Мои заказы</span>
+              </Link>
+            ) : null}
             {user ? (
               <button
                 type="button"

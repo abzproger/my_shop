@@ -35,6 +35,19 @@ export type OrderItem = {
   price: string | number;
 };
 
+export type OrderPreviewLine = {
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  unit_price: string | number;
+  line_total: string | number;
+};
+
+export type OrderPreview = {
+  items: OrderPreviewLine[];
+  total_price: string | number;
+};
+
 export type Order = {
   id: number;
   status: OrderStatus;

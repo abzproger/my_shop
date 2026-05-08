@@ -11,6 +11,23 @@ class OrderItemCreate(BaseModel):
     quantity: int = Field(ge=1, le=99)
 
 
+class OrderPreviewRequest(BaseModel):
+    items: list[OrderItemCreate] = Field(min_length=1)
+
+
+class OrderPreviewLine(BaseModel):
+    product_id: int
+    product_name: str
+    quantity: int
+    unit_price: Decimal
+    line_total: Decimal
+
+
+class OrderPreviewResponse(BaseModel):
+    items: list[OrderPreviewLine]
+    total_price: Decimal
+
+
 class OrderCreate(BaseModel):
     items: list[OrderItemCreate] = Field(min_length=1)
     phone: str = Field(min_length=5, max_length=32)

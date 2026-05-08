@@ -1,6 +1,7 @@
 import type {
   Category,
   Order,
+  OrderPreview,
   OrderStatus,
   Product,
   TelegramLoginPayload,
@@ -10,10 +11,31 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
+export function formatApiErrorDetail(detail: unknown): string {
+  if (detail == null) return "";
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const parts = detail
+      .map((entry) => {
+        if (entry && typeof entry === "object" && "msg" in entry) {
+          return String((entry as { msg: unknown }).msg);
+        }
+        return "";
+      })
+      .filter(Boolean);
+    return parts.length ? parts.join(" ") : "";
+  }
+  if (typeof detail === "object" && detail !== null && "message" in detail) {
+    return String((detail as { message: unknown }).message);
+  }
+  return "";
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
-    message: string
+    message: string,
+    public rawDetail?: unknown
   ) {
     super(message);
   }
@@ -39,8 +61,15 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   });
 
   if (!response.ok) {
-    const detail = await response.json().catch(() => null);
-    throw new ApiError(response.status, detail?.detail ?? "API request failed");
+    const body = await response.json().catch(() => null);
+    const rawDetail = body?.detail;
+    const detailText = formatApiErrorDetail(rawDetail);
+    const message =
+      detailText ||
+      (response.status === 404 ? "Не найдено" : "") ||
+      (response.status >= 500 ? "Ошибка сервера. Попробуйте позже." : "") ||
+      "Не удалось выполнить запрос";
+    throw new ApiError(response.status, message, rawDetail);
   }
 
   if (response.status === 204) {
@@ -70,6 +99,11 @@ export const api = {
       body: JSON.stringify(payload)
     }),
   me: (token: string) => apiFetch<User>("/auth/me", { token }),
+  previewOrder: (items: Array<{ product_id: number; quantity: number }>) =>
+    apiFetch<OrderPreview>("/orders/preview", {
+      method: "POST",
+      body: JSON.stringify({ items })
+    }),
   createOrder: (
     token: string,
     payload: {
@@ -85,6 +119,9 @@ export const api = {
       body: JSON.stringify(payload)
     }),
   orders: (token: string) => apiFetch<Order[]>("/orders", { token }),
+  order: (token: string, id: number) => apiFetch<Order>(`/orders/${id}`, { token }),
+  cancelOrder: (token: string, id: number) =>
+    apiFetch<Order>(`/orders/${id}/cancel`, { method: "POST", token }),
   adminProducts: (token: string) => apiFetch<Product[]>("/admin/products", { token }),
   adminCategories: (token: string) => apiFetch<Category[]>("/admin/categories", { token }),
   adminCreateProduct: (token: string, payload: unknown) =>

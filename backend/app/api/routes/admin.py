@@ -12,6 +12,7 @@ from app.models.user import User
 from app.schemas.catalog import CategoryCreate, CategoryRead, ProductCreate, ProductRead, ProductUpdate
 from app.schemas.order import OrderRead, OrderStatusUpdate
 from app.services.catalog import create_product, get_category_or_none, product_query, product_to_read, update_product
+from app.services.notifier import customer_order_status_message, notify_bot
 from app.services.orders import get_order, order_to_read
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(get_admin_user)])
@@ -113,7 +114,16 @@ async def admin_update_order_status(
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
 
+    previous_status = order.status
     order.status = payload.status
     await session.commit()
     order = await get_order(session, order_id)
-    return order_to_read(order)
+    assert order is not None
+    read_model = order_to_read(order)
+    if (
+        order.user
+        and previous_status != payload.status
+        and (customer_text := customer_order_status_message(read_model.id, payload.status))
+    ):
+        await notify_bot(customer=(order.user.telegram_id, customer_text))
+    return read_model
