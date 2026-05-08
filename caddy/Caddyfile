@@ -1,0 +1,25 @@
+# Продакшен: публичные TLS-сертификаты (Let's Encrypt через ACME).
+# Требования: PRIMARY_DOMAIN указывает на IP сервера, порты 80/443 доступны с интернета.
+#
+# Маршрутизация на одном домене:
+#   https://ДОМЕН/     → Next.js
+#   https://ДОМЕН/api  → FastAPI (префикс /api как в приложении)
+#   https://ДОМЕН/health → healthcheck бэкенда
+#
+# Переменные задаются в docker-compose.prod.yml (секция environment у caddy).
+
+{$PRIMARY_DOMAIN} {
+	encode gzip zstd
+
+	handle /health {
+		reverse_proxy backend:8000
+	}
+
+	handle /api* {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

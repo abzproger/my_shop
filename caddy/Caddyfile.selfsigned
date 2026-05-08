@@ -1,0 +1,23 @@
+# Локальная проверка «как в проде» без публичного DNS: TLS с внутренним CA Caddy.
+# Запуск: в .env для прод-стека задайте CADDYFILE=./caddy/Caddyfile.selfsigned
+# и PRIMARY_DOMAIN=localhost (или имя из /etc/hosts). Браузер покажет предупреждение о сертификате.
+#
+# Для доверенного локального CA можно один раз выполнить у себя: caddy trust (на машине с Caddy CLI).
+
+{$PRIMARY_DOMAIN} {
+	tls internal
+
+	encode gzip zstd
+
+	handle /health {
+		reverse_proxy backend:8000
+	}
+
+	handle /api* {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

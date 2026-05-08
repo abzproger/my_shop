@@ -1,0 +1,101 @@
+name: my_shop_prod
+
+# Продакшен-стек: только Caddy слушает 80/443. PostgreSQL, API, бот и фронт — только внутри сети Docker.
+# Запуск: docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# Перед первым запуском скопируйте .env.prod.example → .env и заполните переменные.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-shop}
+      POSTGRES_USER: ${POSTGRES_USER:-shop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shop} -d ${POSTGRES_DB:-shop}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - internal
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shop}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-shop}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
+      ADMIN_TELEGRAM_IDS: ${ADMIN_TELEGRAM_IDS:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS in .env}
+      BOT_INTERNAL_URL: http://bot:8081/internal/order-notification
+      BOT_INTERNAL_SECRET: ${BOT_INTERNAL_SECRET:?Set BOT_INTERNAL_SECRET in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+
+  bot:
+    build:
+      context: ./bot
+    environment:
+      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      MINI_APP_URL: ${MINI_APP_URL:?Set MINI_APP_URL in .env}
+      ADMIN_CHAT_ID: ${ADMIN_CHAT_ID:-}
+      BOT_INTERNAL_SECRET: ${BOT_INTERNAL_SECRET}
+      BOT_INTERNAL_HOST: 0.0.0.0
+      BOT_INTERNAL_PORT: 8081
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL in .env}
+        NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:?Set NEXT_PUBLIC_TELEGRAM_BOT_USERNAME in .env}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PRIMARY_DOMAIN: ${PRIMARY_DOMAIN:?Set PRIMARY_DOMAIN in .env}
+      API_DOMAIN: ${API_DOMAIN:-}
+    volumes:
+      - ${CADDYFILE:-./caddy/Caddyfile}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

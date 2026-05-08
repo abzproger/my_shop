@@ -13,6 +13,7 @@
 - [Структура репозитория](#структура-репозитория)
 - [Требования](#требования)
 - [Быстрый старт (Docker Compose)](#быстрый-старт-docker-compose)
+- [Продакшен: Caddy и TLS](#продакшен-caddy-и-tls)
 - [Переменные окружения](#переменные-окружения)
 - [API (обзор)](#api-обзор)
 - [Заказы, превью и уведомления](#заказы-превью-и-уведомления)
@@ -107,8 +108,12 @@ my_shop/
 │   ├── app/           # страницы App Router
 │   ├── components/
 │   └── lib/           # api.ts, auth, cart
-├── docker-compose.yml
-├── .env.example       # шаблон переменных (скопировать в .env)
+├── docker-compose.yml          # локальная разработка (порты 3000/8000/8081/5432)
+├── docker-compose.prod.yml     # продакшен: только Caddy 80/443 наружу
+├── caddy/                      # Caddyfile для TLS и маршрутизации
+├── DEPLOY.md                   # гайд по деплою (Timeweb, firewall)
+├── .env.prod.example           # пример .env для prod Compose
+├── .env.example
 └── README.md
 ```
 
@@ -156,6 +161,22 @@ my_shop/
 - Остановка: `docker compose down`.
 - Данные PostgreSQL сохраняются в томе `postgres_data`.
 - Полный сброс БД: `docker compose down -v` (**все данные в PostgreSQL будут удалены**).
+
+## Продакшен: Caddy и TLS
+
+Для выкладки в бой используйте **`docker-compose.prod.yml`** и **Caddy**: наружу только **80** и **443**, PostgreSQL и внутренний HTTP бота не публикуются.
+
+1. Скопируйте [`.env.prod.example`](.env.prod.example) в `.env` (или иной файл и передайте `--env-file`).
+2. Заполните `PRIMARY_DOMAIN`, `NEXT_PUBLIC_API_URL`, `MINI_APP_URL`, `CORS_ORIGINS`, секреты и Telegram.
+3. Запуск:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+   ```
+
+Файлы Caddy: [`caddy/Caddyfile`](caddy/Caddyfile) (один домен, маршрут `/api*` → бэкенд), [`caddy/Caddyfile.subdomain`](caddy/Caddyfile.subdomain) (API на поддомене), [`caddy/Caddyfile.selfsigned`](caddy/Caddyfile.selfsigned) (TLS `internal` для локальных тестов).
+
+Пошагово: firewall, Timeweb, DNS — **[DEPLOY.md](DEPLOY.md)**.
 
 ---
 
@@ -298,6 +319,7 @@ npm run lint      # ESLint (Next.js)
 
 ## Продакшен: чеклист
 
+- [ ] Запуск через **`docker-compose.prod.yml`** + **Caddy**, см. [DEPLOY.md](DEPLOY.md) и раздел [Продакшен: Caddy и TLS](#продакшен-caddy-и-tls).
 - [ ] Сильные уникальные **`JWT_SECRET`** и **`BOT_INTERNAL_SECRET`**; не хранить в открытом виде в репозитории.
 - [ ] **`NEXT_PUBLIC_API_URL`** указывает на публичный API с `/api`; после смены — **пересборка** фронтенда.
 - [ ] **HTTPS** на доменах фронтенда и API; корректный **`MINI_APP_URL`**.

@@ -1,0 +1,15 @@
+# API на отдельном поддомене (например api.shop.example.com → только бэкенд).
+# Переменные: PRIMARY_DOMAIN (фронт), API_DOMAIN (бэкенд).
+# В .env: CADDYFILE=./caddy/Caddyfile.subdomain
+# NEXT_PUBLIC_API_URL=https://${API_DOMAIN}/api
+# CORS_ORIGINS обычно достаточно с origin фронта: https://${PRIMARY_DOMAIN}
+
+{$API_DOMAIN} {
+	encode gzip zstd
+	reverse_proxy backend:8000
+}
+
+{$PRIMARY_DOMAIN} {
+	encode gzip zstd
+	reverse_proxy frontend:3000
+}
