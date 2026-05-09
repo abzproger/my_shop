@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     bot_internal_url: str = "http://bot:8081/internal/order-notification"
     bot_internal_secret: str = "change-me-internal-secret"
+    media_root: str = "./media"
+    media_url_prefix: str = "/media"
 
     @property
     def sync_database_url(self) -> str:

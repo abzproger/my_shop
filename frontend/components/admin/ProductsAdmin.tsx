@@ -1,11 +1,11 @@
 "use client";
 
 import { Loader2, Pencil, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import clsx from "clsx";
 
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { api } from "@/lib/api";
+import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { money } from "@/lib/format";
 import type { Category, Product } from "@/types/shop";
@@ -43,6 +43,7 @@ export function ProductsAdmin() {
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -110,6 +111,25 @@ export function ProductsAdmin() {
     }
   }
 
+  async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    if (!token || !event.target.files?.length) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const uploaded = await Promise.all(Array.from(event.target.files).map((file) => api.adminUploadImage(token, file)));
+      const uploadedUrls = uploaded.map((item) => item.url);
+      setForm((current) => {
+        const existing = urlsFromInput(current.images);
+        return { ...current, images: [...existing, ...uploadedUrls].join("\n") };
+      });
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Не удалось загрузить изображения");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  }
+
   async function deleteProduct(productId: number) {
     if (!token) return;
     await api.adminDeleteProduct(token, productId);
@@ -152,7 +172,20 @@ export function ProductsAdmin() {
           </div>
           <label className="block space-y-2">
             <span className="text-sm font-medium">Изображения</span>
-            <textarea value={form.images} onChange={(event) => setForm({ ...form, images: event.target.value })} rows={3} className="w-full resize-none rounded-lg border border-black/10 bg-paper px-3 py-3 outline-none focus:border-moss" />
+            <textarea value={form.images} onChange={(event) => setForm({ ...form, images: event.target.value })} rows={3} placeholder="Можно вставить URL-адреса, по одному на строку" className="w-full resize-none rounded-lg border border-black/10 bg-paper px-3 py-3 outline-none focus:border-moss" />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">Загрузка файлов</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              disabled={uploading}
+              className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-moss/15 file:px-3 file:py-2 file:font-medium file:text-moss hover:file:bg-moss/20"
+            />
+            <p className="text-xs text-ink/60">Файлы будут загружены на сервер и автоматически добавлены в список изображений.</p>
+            {uploading ? <p className="text-xs text-moss">Загружаю изображения...</p> : null}
           </label>
           <label className="flex items-center gap-3 rounded-lg bg-paper p-3 text-sm font-medium">
             <input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} className="h-4 w-4 accent-moss" />

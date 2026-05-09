@@ -47,7 +47,7 @@ type ApiOptions = RequestInit & {
 
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
-  if (!headers.has("Content-Type") && options.body) {
+  if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
   if (options.token) {
@@ -130,6 +130,17 @@ export const api = {
     apiFetch<Product>(`/admin/products/${id}`, { method: "PATCH", token, body: JSON.stringify(payload) }),
   adminDeleteProduct: (token: string, id: number) =>
     apiFetch<void>(`/admin/products/${id}`, { method: "DELETE", token }),
+  adminCreateCategory: (token: string, payload: { name: string }) =>
+    apiFetch<Category>("/admin/categories", { method: "POST", token, body: JSON.stringify(payload) }),
+  adminUpdateCategory: (token: string, id: number, payload: { name: string }) =>
+    apiFetch<Category>(`/admin/categories/${id}`, { method: "PATCH", token, body: JSON.stringify(payload) }),
+  adminDeleteCategory: (token: string, id: number) =>
+    apiFetch<void>(`/admin/categories/${id}`, { method: "DELETE", token }),
+  adminUploadImage: (token: string, file: File) => {
+    const body = new FormData();
+    body.append("image", file);
+    return apiFetch<{ url: string }>("/admin/uploads/image", { method: "POST", token, body });
+  },
   adminOrders: (token: string, status?: OrderStatus | "ALL") => {
     const suffix = status && status !== "ALL" ? `?status=${status}` : "";
     return apiFetch<Order[]>(`/admin/orders${suffix}`, { token });

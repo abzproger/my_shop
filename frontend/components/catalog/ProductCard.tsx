@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { money } from "@/lib/format";
+import { resolveImageUrl } from "@/lib/image";
 import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/types/shop";
 
@@ -13,6 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
   const { addProduct, items } = useCart();
   const router = useRouter();
   const image = product.images[0];
+  const imageSrc = image ? resolveImageUrl(image) : null;
   const inCart = items.some((item) => item.productId === product.id);
 
   const handleCartClick = () => {
@@ -27,8 +29,8 @@ export function ProductCard({ product }: { product: Product }) {
     <article className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-soft">
       <Link href={`/products/${product.id}`} className="block">
         <div className="relative aspect-[4/3] bg-black/5">
-          {image ? (
-            <Image src={image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
+          {imageSrc ? (
+            <Image src={imageSrc} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
           ) : (
             <div className="grid h-full place-items-center text-sm text-ink/50">Нет фото</div>
           )}

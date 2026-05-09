@@ -14,6 +14,17 @@ import type { Order, OrderPreview, PaymentMethod } from "@/types/shop";
 
 const paymentMethods: PaymentMethod[] = ["CASH", "TRANSFER"];
 
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (!digits) return "";
+  const normalized = digits.startsWith("7") ? digits : `7${digits}`;
+  const a = normalized.slice(1, 4);
+  const b = normalized.slice(4, 7);
+  const c = normalized.slice(7, 9);
+  const d = normalized.slice(9, 11);
+  return `+7${a ? ` (${a}` : ""}${a.length === 3 ? ")" : ""}${b ? ` ${b}` : ""}${c ? `-${c}` : ""}${d ? `-${d}` : ""}`;
+}
+
 export function CheckoutView() {
   const { initialized, token, user } = useAuth();
   const { items, total, clear } = useCart();
@@ -26,6 +37,7 @@ export function CheckoutView() {
   const [preview, setPreview] = useState<OrderPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -69,8 +81,8 @@ export function CheckoutView() {
     try {
       const order = await api.createOrder(token, {
         items: items.map((item) => ({ product_id: item.productId, quantity: item.quantity })),
-        phone,
-        address,
+        phone: phone.trim(),
+        address: address.trim(),
         payment_method: paymentMethod
       });
       setCreatedOrder(order);
@@ -88,6 +100,31 @@ export function CheckoutView() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function fillByGeolocation() {
+    if (!navigator.geolocation) {
+      setError("Геолокация не поддерживается в этом браузере.");
+      return;
+    }
+    setGeoLoading(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setAddress((current) =>
+          current.trim()
+            ? `${current.trim()}, координаты: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            : `Координаты: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+        );
+        setGeoLoading(false);
+      },
+      () => {
+        setError("Не удалось получить геолокацию. Проверьте разрешение доступа к местоположению.");
+        setGeoLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
   }
 
   if (createdOrder) {
@@ -157,9 +194,11 @@ export function CheckoutView() {
           <input
             required
             value={phone}
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) => setPhone(formatPhone(event.target.value))}
             className="h-12 w-full rounded-lg border border-black/10 bg-paper px-3 outline-none focus:border-moss"
-            placeholder="+7"
+            inputMode="tel"
+            pattern="^\+?[0-9\-\s\(\)]{10,20}$"
+            placeholder="+7 (999) 123-45-67"
           />
         </label>
         <label className="block space-y-2">
@@ -170,8 +209,19 @@ export function CheckoutView() {
             onChange={(event) => setAddress(event.target.value)}
             rows={4}
             className="w-full resize-none rounded-lg border border-black/10 bg-paper px-3 py-3 outline-none focus:border-moss"
+            placeholder="Например: г. Алматы, ул. Абая, д. 25, кв. 14"
+            minLength={8}
+            maxLength={255}
           />
         </label>
+        <button
+          type="button"
+          onClick={fillByGeolocation}
+          disabled={geoLoading}
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-black/15 px-4 text-sm font-medium text-ink disabled:opacity-60"
+        >
+          {geoLoading ? "Определяем локацию..." : "Подставить геолокацию"}
+        </button>
         <div className="space-y-2">
           <span className="text-sm font-medium">Оплата</span>
           <div className="grid grid-cols-2 gap-2">

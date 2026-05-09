@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { useCart } from "@/lib/cart-context";
 import { money } from "@/lib/format";
+import { resolveImageUrl } from "@/lib/image";
 
 export function CartView() {
   const { items, total, increment, decrement, remove } = useCart();
@@ -33,7 +34,7 @@ export function CartView() {
         {items.map((item) => (
           <article key={item.productId} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-black/10 bg-white p-3 shadow-soft">
             <div className="relative aspect-square overflow-hidden rounded-lg bg-black/5">
-              {item.image ? <Image src={item.image} alt={item.name} fill sizes="88px" className="object-cover" /> : null}
+              {item.image ? <Image src={resolveImageUrl(item.image)} alt={item.name} fill sizes="88px" className="object-cover" /> : null}
             </div>
             <div className="min-w-0 space-y-3">
               <div className="flex gap-2">

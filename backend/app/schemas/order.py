@@ -1,7 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
+import re
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.order import OrderStatus, PaymentMethod
 
@@ -30,9 +31,27 @@ class OrderPreviewResponse(BaseModel):
 
 class OrderCreate(BaseModel):
     items: list[OrderItemCreate] = Field(min_length=1)
-    phone: str = Field(min_length=5, max_length=32)
-    address: str = Field(min_length=5, max_length=1024)
+    phone: str = Field(min_length=10, max_length=20)
+    address: str = Field(min_length=8, max_length=255)
     payment_method: PaymentMethod
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(r"\+?[0-9][0-9\-\s\(\)]{8,18}", normalized):
+            raise ValueError("Некорректный формат телефона")
+        return normalized
+
+    @field_validator("address")
+    @classmethod
+    def validate_address(cls, value: str) -> str:
+        normalized = re.sub(r"\s+", " ", value.strip())
+        if len(normalized) < 8:
+            raise ValueError("Адрес слишком короткий")
+        if not re.search(r"[A-Za-zА-Яа-я]", normalized) or not re.search(r"\d", normalized):
+            raise ValueError("Укажите адрес с улицей и номером дома")
+        return normalized
 
 
 class OrderItemRead(BaseModel):

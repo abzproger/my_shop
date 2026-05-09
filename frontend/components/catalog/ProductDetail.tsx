@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
 import { money } from "@/lib/format";
+import { resolveImageUrl } from "@/lib/image";
 import type { Product } from "@/types/shop";
 
 export function ProductDetail({ productId }: { productId: number }) {
@@ -20,6 +21,7 @@ export function ProductDetail({ productId }: { productId: number }) {
   const [error, setError] = useState<string | null>(null);
 
   const inCart = items.some((item) => item.productId === productId);
+  const mainImage = product?.images[0] ? resolveImageUrl(product.images[0]) : null;
 
   const handleCartClick = () => {
     if (!product) {
@@ -71,8 +73,8 @@ export function ProductDetail({ productId }: { productId: number }) {
     <div className="grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
       <div className="overflow-hidden rounded-lg border border-black/10 bg-white">
         <div className="relative aspect-square bg-black/5">
-          {product.images[0] ? (
-            <Image src={product.images[0]} alt={product.name} fill priority sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+          {mainImage ? (
+            <Image src={mainImage} alt={product.name} fill priority sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
           ) : (
             <div className="grid h-full place-items-center text-ink/50">Нет фото</div>
           )}
