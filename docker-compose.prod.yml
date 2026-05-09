@@ -1,5 +1,3 @@
-name: my_shop_prod
-
 # Продакшен-стек: только Caddy слушает 80/443. PostgreSQL, API, бот и фронт — только внутри сети Docker.
 # Запуск: docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 #
@@ -90,7 +88,9 @@ services:
     restart: unless-stopped
     networks:
       - internal
-
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
 networks:
   internal:
     driver: bridge
