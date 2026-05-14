@@ -20,6 +20,10 @@ const remotePatterns = [
     hostname: "images.unsplash.com"
   },
   {
+    protocol: "https",
+    hostname: "i.pinimg.com"
+  },
+  {
     protocol: "http",
     hostname: "localhost",
     port: "8000"
