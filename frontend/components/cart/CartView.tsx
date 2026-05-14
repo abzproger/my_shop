@@ -40,7 +40,7 @@ export function CartView() {
                   <img
                     src={imageSrc}
                     alt={item.name}
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="absolute inset-0 h-full w-full object-contain p-2"
                   />
                 ) : null}
               </div>

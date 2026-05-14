@@ -15,11 +15,11 @@ declare global {
 
 export function TelegramLoginButton() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { loginWithTelegramWidget } = useAuth();
+  const { isTelegram, loginWithTelegramWidget } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !BOT_USERNAME) return;
+    if (!containerRef.current || !BOT_USERNAME || isTelegram) return;
 
     window.onTelegramAuth = async (payload: TelegramLoginPayload) => {
       try {
@@ -40,12 +40,20 @@ export function TelegramLoginButton() {
     script.setAttribute("data-request-access", "write");
     script.setAttribute("data-onauth", "onTelegramAuth(user)");
     containerRef.current.appendChild(script);
-  }, [loginWithTelegramWidget]);
+  }, [isTelegram, loginWithTelegramWidget]);
 
   if (!BOT_USERNAME) {
     return (
       <div className="rounded-lg border border-coral/30 bg-coral/10 p-3 text-sm text-coral">
         NEXT_PUBLIC_TELEGRAM_BOT_USERNAME не настроен.
+      </div>
+    );
+  }
+
+  if (isTelegram) {
+    return (
+      <div className="rounded-lg border border-coral/30 bg-coral/10 p-3 text-sm text-coral">
+        Не удалось выполнить автоматический вход в Mini App. Закройте Mini App и откройте его снова через кнопку бота.
       </div>
     );
   }

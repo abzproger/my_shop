@@ -76,7 +76,7 @@ export function ProductDetail({ productId }: { productId: number }) {
             <img
               src={mainImage}
               alt={product.name}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-contain p-4"
             />
           ) : (
             <div className="grid h-full place-items-center text-ink/50">Нет фото</div>

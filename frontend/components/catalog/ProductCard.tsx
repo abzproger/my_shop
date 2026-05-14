@@ -32,7 +32,7 @@ export function ProductCard({ product }: { product: Product }) {
             <img
               src={imageSrc}
               alt={product.name}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-contain p-3"
             />
           ) : (
             <div className="grid h-full place-items-center text-sm text-ink/50">Нет фото</div>
