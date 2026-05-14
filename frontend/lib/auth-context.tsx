@@ -3,7 +3,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { api } from "@/lib/api";
-import { getMiniAppInitData, setupTelegramViewport } from "@/lib/telegram";
 import type { TelegramLoginPayload, User } from "@/types/shop";
 
 const TOKEN_STORAGE_KEY = "my_shop_access_token";
@@ -12,7 +11,6 @@ type AuthContextValue = {
   initialized: boolean;
   token: string | null;
   user: User | null;
-  isTelegram: boolean;
   loginWithTelegramWidget: (payload: TelegramLoginPayload) => Promise<void>;
   logout: () => void;
 };
@@ -23,7 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isTelegram, setIsTelegram] = useState(false);
 
   const applyAuth = useCallback((nextToken: string, nextUser: User) => {
     localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
@@ -49,17 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     async function initialize() {
-      const telegramDetected = setupTelegramViewport();
-      if (mounted) setIsTelegram(telegramDetected);
-
-      const initData = getMiniAppInitData();
       try {
-        if (initData) {
-          const response = await api.miniAuth(initData);
-          if (mounted) applyAuth(response.access_token, response.user);
-          return;
-        }
-
         const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
         if (storedToken) {
           const currentUser = await api.me(storedToken);
@@ -79,11 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mounted = false;
     };
-  }, [applyAuth, logout]);
+  }, [logout]);
 
   const value = useMemo(
-    () => ({ initialized, token, user, isTelegram, loginWithTelegramWidget, logout }),
-    [initialized, token, user, isTelegram, loginWithTelegramWidget, logout]
+    () => ({ initialized, token, user, loginWithTelegramWidget, logout }),
+    [initialized, token, user, loginWithTelegramWidget, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

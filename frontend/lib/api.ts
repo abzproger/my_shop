@@ -88,11 +88,6 @@ export const api = {
     return apiFetch<Product[]>(`/products${suffix}`);
   },
   product: (id: number) => apiFetch<Product>(`/products/${id}`),
-  miniAuth: (initData: string) =>
-    apiFetch<TokenResponse>("/auth/telegram-mini-app", {
-      method: "POST",
-      body: JSON.stringify({ init_data: initData })
-    }),
   loginAuth: (payload: TelegramLoginPayload) =>
     apiFetch<TokenResponse>("/auth/telegram-login", {
       method: "POST",

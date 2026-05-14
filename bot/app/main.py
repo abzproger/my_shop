@@ -9,7 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, ReplyKeyboardRemove, WebAppInfo
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window, setup_dialogs
 from aiogram_dialog.widgets.kbd import Url
 from aiogram_dialog.widgets.text import Const
@@ -40,16 +40,11 @@ def build_start_dialog(settings: Settings) -> Dialog:
 async def start(message: Message, dialog_manager: DialogManager) -> None:
     settings = get_settings()
     web_app = WebAppInfo(url=settings.mini_app_url)
-    reply_markup = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="Открыть магазин", web_app=web_app)]],
-        resize_keyboard=True,
-        input_field_placeholder="Откройте магазин",
-    )
     inline_markup = InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="Открыть Mini App", web_app=web_app)]]
     )
 
-    await message.answer("Нажмите кнопку ниже, чтобы открыть магазин.", reply_markup=reply_markup)
+    await message.answer("Нажмите кнопку ниже, чтобы открыть магазин.", reply_markup=ReplyKeyboardRemove())
     await message.answer("Каталог, корзина и оформление заказа доступны в одном интерфейсе.", reply_markup=inline_markup)
     await dialog_manager.start(StartSG.main, mode=StartMode.RESET_STACK)
 

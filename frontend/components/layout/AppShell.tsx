@@ -1,10 +1,12 @@
 "use client";
 
 import { ClipboardList, Package, ShieldCheck, ShoppingBag, UserRound } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
+import logo from "@/logo.jpg";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 
@@ -19,15 +21,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { count } = useCart();
   const { user, logout } = useAuth();
 
+  const confirmLogout = () => {
+    if (window.confirm("Выйти из аккаунта?")) {
+      logout();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-paper text-ink">
       <header className="sticky top-0 z-30 border-b border-black/10 bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-moss text-white">
-              <ShoppingBag size={19} aria-hidden />
+            <span className="relative h-9 w-9 overflow-hidden rounded-lg border border-black/10 bg-white">
+              <Image src={logo} alt="" fill sizes="36px" className="object-cover" priority />
             </span>
-            <span className="truncate">My Shop</span>
+            <span className="truncate">MebelHub</span>
           </Link>
 
           <nav className="ml-auto flex items-center gap-1">
@@ -72,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {user ? (
               <button
                 type="button"
-                onClick={logout}
+                onClick={confirmLogout}
                 className="ml-1 grid h-10 min-w-10 place-items-center rounded-lg text-ink/70 hover:bg-black/5"
                 title={user.username ? `@${user.username}` : "Профиль"}
               >

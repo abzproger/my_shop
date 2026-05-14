@@ -5,8 +5,8 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "My Shop",
-  description: "Каталог физических товаров с Telegram Mini App и веб-доступом"
+  title: "MebelHub",
+  description: "Каталог мебели MebelHub с входом через Telegram"
 };
 
 export const viewport: Viewport = {
