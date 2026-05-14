@@ -1,7 +1,6 @@
 "use client";
 
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 import { useCart } from "@/lib/cart-context";
@@ -31,41 +30,51 @@ export function CartView() {
     <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <section className="space-y-3">
         <h1 className="text-2xl font-semibold">Корзина</h1>
-        {items.map((item) => (
-          <article key={item.productId} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-black/10 bg-white p-3 shadow-soft">
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-black/5">
-              {item.image ? <Image src={resolveImageUrl(item.image)} alt={item.name} fill sizes="88px" className="object-cover" /> : null}
-            </div>
-            <div className="min-w-0 space-y-3">
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1">
-                  <h2 className="line-clamp-2 font-semibold leading-snug">{item.name}</h2>
-                  <p className="text-sm font-semibold text-coral">{money(item.price)}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => remove(item.productId)}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink/55 hover:bg-black/5"
-                  title="Удалить"
-                >
-                  <Trash2 size={17} aria-hidden />
-                </button>
+        {items.map((item) => {
+          const imageSrc = item.image ? resolveImageUrl(item.image) : null;
+
+          return (
+            <article key={item.productId} className="grid grid-cols-[88px_1fr] gap-3 rounded-lg border border-black/10 bg-white p-3 shadow-soft">
+              <div className="relative aspect-square overflow-hidden rounded-lg bg-black/5">
+                {imageSrc ? (
+                  <img
+                    src={imageSrc}
+                    alt={item.name}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : null}
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex h-10 items-center rounded-lg border border-black/10 bg-paper">
-                  <button type="button" onClick={() => decrement(item.productId)} className="grid h-10 w-10 place-items-center" title="Меньше">
-                    <Minus size={16} aria-hidden />
-                  </button>
-                  <span className="grid h-10 w-9 place-items-center text-sm font-semibold">{item.quantity}</span>
-                  <button type="button" onClick={() => increment(item.productId)} className="grid h-10 w-10 place-items-center" title="Больше">
-                    <Plus size={16} aria-hidden />
+              <div className="min-w-0 space-y-3">
+                <div className="flex gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="line-clamp-2 font-semibold leading-snug">{item.name}</h2>
+                    <p className="text-sm font-semibold text-coral">{money(item.price)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => remove(item.productId)}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink/55 hover:bg-black/5"
+                    title="Удалить"
+                  >
+                    <Trash2 size={17} aria-hidden />
                   </button>
                 </div>
-                <p className="font-semibold">{money(Number(item.price) * item.quantity)}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex h-10 items-center rounded-lg border border-black/10 bg-paper">
+                    <button type="button" onClick={() => decrement(item.productId)} className="grid h-10 w-10 place-items-center" title="Меньше">
+                      <Minus size={16} aria-hidden />
+                    </button>
+                    <span className="grid h-10 w-9 place-items-center text-sm font-semibold">{item.quantity}</span>
+                    <button type="button" onClick={() => increment(item.productId)} className="grid h-10 w-10 place-items-center" title="Больше">
+                      <Plus size={16} aria-hidden />
+                    </button>
+                  </div>
+                  <p className="font-semibold">{money(Number(item.price) * item.quantity)}</p>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </section>
 
       <aside className="h-fit rounded-lg border border-black/10 bg-white p-4 shadow-soft">

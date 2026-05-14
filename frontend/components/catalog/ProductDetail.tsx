@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -74,7 +73,11 @@ export function ProductDetail({ productId }: { productId: number }) {
       <div className="overflow-hidden rounded-lg border border-black/10 bg-white">
         <div className="relative aspect-square bg-black/5">
           {mainImage ? (
-            <Image src={mainImage} alt={product.name} fill priority sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+            <img
+              src={mainImage}
+              alt={product.name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           ) : (
             <div className="grid h-full place-items-center text-ink/50">Нет фото</div>
           )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { Plus, ShoppingCart } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -30,7 +29,11 @@ export function ProductCard({ product }: { product: Product }) {
       <Link href={`/products/${product.id}`} className="block">
         <div className="relative aspect-[4/3] bg-black/5">
           {imageSrc ? (
-            <Image src={imageSrc} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
+            <img
+              src={imageSrc}
+              alt={product.name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           ) : (
             <div className="grid h-full place-items-center text-sm text-ink/50">Нет фото</div>
           )}
