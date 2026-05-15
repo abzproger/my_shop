@@ -90,7 +90,7 @@ export function CheckoutView() {
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 422) {
-          setError("Проверьте поля формы: телефон и адрес должны быть не короче 5 символов.");
+          setError("Проверьте телефон и адрес. Адрес можно писать без запятых, например: Буйнакск Чкалова д3.");
         } else {
           setError(e.message);
         }
@@ -209,7 +209,7 @@ export function CheckoutView() {
             onChange={(event) => setAddress(event.target.value)}
             rows={4}
             className="w-full resize-none rounded-lg border border-black/10 bg-paper px-3 py-3 outline-none focus:border-moss"
-            placeholder="Например: г. Алматы, ул. Абая, д. 25, кв. 14"
+            placeholder="Например: Буйнакск Чкалова д3"
             minLength={8}
             maxLength={255}
           />

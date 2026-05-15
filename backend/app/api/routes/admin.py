@@ -120,7 +120,15 @@ async def admin_delete_product(product_id: int, session: AsyncSession = Depends(
     product = await session.get(Product, product_id)
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    product.is_active = False
+
+    in_orders = await session.execute(select(OrderItem.id).where(OrderItem.product_id == product_id).limit(1))
+    if in_orders.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Товар уже есть в заказах. Его нельзя удалить без потери истории заказов; снимите его с продажи через поле «Активен».",
+        )
+
+    await session.delete(product)
     await session.commit()
 
 

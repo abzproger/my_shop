@@ -132,8 +132,13 @@ export function ProductsAdmin() {
 
   async function deleteProduct(productId: number) {
     if (!token) return;
-    await api.adminDeleteProduct(token, productId);
-    await load();
+    setError(null);
+    try {
+      await api.adminDeleteProduct(token, productId);
+      await load();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Не удалось удалить товар");
+    }
   }
 
   return (

@@ -1,12 +1,10 @@
 "use client";
 
 import { ClipboardList, Package, ShieldCheck, ShoppingBag, UserRound } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
-import logo from "@/logo.jpg";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 
@@ -31,10 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-paper text-ink">
       <header className="sticky top-0 z-30 border-b border-black/10 bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-          <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold">
-            <span className="relative h-9 w-9 overflow-hidden rounded-lg border border-black/10 bg-white">
-              <Image src={logo} alt="" fill sizes="36px" className="object-cover" priority />
-            </span>
+          <Link href="/" className="flex min-w-0 items-center font-semibold">
             <span className="truncate">MebelHub</span>
           </Link>
 

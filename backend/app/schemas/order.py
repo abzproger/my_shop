@@ -49,8 +49,8 @@ class OrderCreate(BaseModel):
         normalized = re.sub(r"\s+", " ", value.strip())
         if len(normalized) < 8:
             raise ValueError("Адрес слишком короткий")
-        if not re.search(r"[A-Za-zА-Яа-я]", normalized) or not re.search(r"\d", normalized):
-            raise ValueError("Укажите адрес с улицей и номером дома")
+        if not re.search(r"[A-Za-zА-Яа-я]", normalized):
+            raise ValueError("Укажите адрес текстом")
         return normalized
 
 
