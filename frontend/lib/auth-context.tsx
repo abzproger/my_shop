@@ -50,10 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function initialize() {
       try {
-        const telegramDetected = setupTelegramViewport();
+        const initData = getMiniAppInitData();
+        const telegramDetected = Boolean(initData);
+        if (telegramDetected) setupTelegramViewport();
         if (mounted) setIsTelegram(telegramDetected);
 
-        const initData = getMiniAppInitData();
         if (initData) {
           const response = await api.miniAuth(initData);
           if (mounted) applyAuth(response.access_token, response.user);

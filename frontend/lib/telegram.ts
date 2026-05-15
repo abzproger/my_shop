@@ -34,7 +34,7 @@ export function getMiniAppInitData(): string | null {
 
 export function setupTelegramViewport(): boolean {
   const tg = getTelegramWebApp();
-  if (!tg) return false;
+  if (!tg?.initData) return false;
 
   tg.ready();
   tg.expand();
